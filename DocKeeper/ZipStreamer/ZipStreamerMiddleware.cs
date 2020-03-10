@@ -11,11 +11,14 @@ using Microsoft.AspNetCore.Routing.Template;
 using System.IO.Compression;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using DocKeeper.Package;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.Primitives;
+using NuGet.Versioning;
 
 namespace DocKeeper
 {
-    public class ZipStreamerMiddleware
+    public class ZipStreamerMiddleware 
     {
         private readonly RequestDelegate _next;
         private readonly ZipStreamerOptions _options;
@@ -26,8 +29,7 @@ namespace DocKeeper
         {
             _next = next;
             _options = options;
-            _requestMatcher =
-                new TemplateMatcher(TemplateParser.Parse(_options.RouteTemplate), new RouteValueDictionary());
+            _requestMatcher = new TemplateMatcher(TemplateParser.Parse(_options.RouteTemplate), new RouteValueDictionary());  
             _mime = new FileExtensionContentTypeProvider();
         }
 
@@ -35,14 +37,35 @@ namespace DocKeeper
         public async Task InvokeAsync(HttpContext context)
         {
             // Is this our request?
-            if (!RequestingZipComponent(context.Request, out var zipPath, out var innerPath))
+            if (!RequestingZipComponent(context.Request, out var package, out var version, out var innerPath))
             {
                 await _next(context);
                 return;
             }
 
+            if (version == "latest")
+            {
+                var latestVersion = Directory.GetFiles(_options.LibraryPath)
+                    .Where(x => x.EndsWith(".zip") || x.EndsWith(".nupkg"))
+                    .Select(PackageInfo.FromZip)
+                    .Where(x => x.PackageId == package)
+                    .Select(x =>
+                        new {
+                            Value = x.Version,
+                            Sort = NuGetVersion.Parse(x.Version)
+                        }
+                    )
+                    .Where(x => !x.Sort.IsPrerelease)
+                    .OrderByDescending(x => x.Sort)
+                    .First().Value;
+
+                context.Response.StatusCode = 302;
+                context.Response.Headers.Add("Location", new StringValues($"/library/{package}/{latestVersion}/{innerPath}"));
+                return;
+            }
+
             // Figure out where this zip lives
-            var fullZipPath = Path.Combine(_options.LibraryPath, zipPath);
+            var fullZipPath = Path.Combine(_options.LibraryPath, $"{package}.{version}.zip");
             if (!File.Exists(fullZipPath))
             {
                 context.Response.StatusCode = (int)HttpStatusCode.NotFound;
@@ -103,10 +126,11 @@ namespace DocKeeper
             }
         }
 
-        private bool RequestingZipComponent(HttpRequest request, out string zipPath, out string innerPath)
+        private bool RequestingZipComponent(HttpRequest request, out string package, out string version, out string file)
         {
-            zipPath = null;
-            innerPath = null;
+            package = null;
+            version = null;
+            file = null;
 
             if (request.Method != "GET")
                 return false;
@@ -118,8 +142,9 @@ namespace DocKeeper
                 && routeValues.ContainsKey("version")
                 && routeValues.ContainsKey("file"))
             {
-                zipPath = $"{routeValues["package"]}.{routeValues["version"]}.zip";
-                innerPath = routeValues["file"]?.ToString();
+                package = routeValues["package"].ToString();
+                version = routeValues["version"].ToString();
+                file = routeValues["file"]?.ToString();
                 return true;
             }
 

@@ -11,8 +11,7 @@ namespace DocKeeper
     {
         public static IApplicationBuilder UseZipStreamer(this IApplicationBuilder builder, Action<ZipStreamerOptions> setup = null)
         {
-            var options = builder.ApplicationServices.GetService<IOptions<ZipStreamerOptions>>()?.Value ??
-                          new ZipStreamerOptions();
+            var options = builder.ApplicationServices.GetService<IOptions<ZipStreamerOptions>>()?.Value ?? new ZipStreamerOptions();
             setup?.Invoke(options);
             return builder.UseMiddleware<ZipStreamerMiddleware>(options);
         }

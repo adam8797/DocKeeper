@@ -5,8 +5,6 @@ VisualStudioVersion = 16.0.29709.97
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocKeeper", "DocKeeper\DocKeeper.csproj", "{8B87D14E-F2C4-46E9-96C5-184CD12B68FC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocKeeper.ZipStreamer", "DocKeeper.ZipStreamer\DocKeeper.ZipStreamer.csproj", "{ADC44431-BDAF-4C21-B159-E136A142D846}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,10 +15,6 @@ Global
 		{8B87D14E-F2C4-46E9-96C5-184CD12B68FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8B87D14E-F2C4-46E9-96C5-184CD12B68FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8B87D14E-F2C4-46E9-96C5-184CD12B68FC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ADC44431-BDAF-4C21-B159-E136A142D846}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ADC44431-BDAF-4C21-B159-E136A142D846}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ADC44431-BDAF-4C21-B159-E136A142D846}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ADC44431-BDAF-4C21-B159-E136A142D846}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
